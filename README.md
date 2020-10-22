@@ -1,7 +1,7 @@
 # mainthread
 
 [![PkgGoDev](https://pkg.go.dev/badge/golang.design/x/mainthread)](https://pkg.go.dev/golang.design/x/mainthread) [![Go Report Card](https://goreportcard.com/badge/golang.design/x/mainthread)](https://goreportcard.com/report/golang.design/x/mainthread)
-![mainthread](https://github.com/golang-design/mainthread/workflows/mainthread/badge.svg?branch=master)
+![mainthread](https://github.com/golang-design/mainthread/workflows/mainthread/badge.svg?branch=main)
 
 Package mainthread schedules function calls on the main thread in Go.
 

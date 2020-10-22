@@ -6,17 +6,58 @@ package mainthread_test
 
 import (
 	"fmt"
+	"os"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"golang.design/x/mainthread"
+	"golang.org/x/sys/unix"
 )
 
-func TestMainthread(t *testing.T) {
+var initTid int
+
+func init() {
+	initTid = unix.Getpid()
+}
+
+func TestMain(m *testing.M) {
 	mainthread.Init(func() {
-		mainthread.Call(func() {
-			// FIXME: how to test this function really runs on the main thread?
-		})
+		os.Exit(m.Run())
 	})
+}
+
+func TestMainThread(t *testing.T) {
+	var (
+		nummain uint64
+		numcall = 100000
+	)
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < numcall; i++ {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			mainthread.Call(func() {
+				tid := unix.Gettid()
+				if tid == initTid {
+					return
+				}
+				t.Fatalf("call is not executed on the main thread, want %d, got %d", initTid, tid)
+			})
+		}()
+		go func() {
+			defer wg.Done()
+			if unix.Gettid() == initTid {
+				atomic.AddUint64(&nummain, 1)
+			}
+		}()
+	}
+	wg.Wait()
+
+	if nummain == uint64(numcall) {
+		t.Fatalf("all non main thread calls are executed on the main thread.")
+	}
 }
 
 func BenchmarkCall(b *testing.B) {
