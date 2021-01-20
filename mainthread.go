@@ -4,7 +4,10 @@
 
 package mainthread // import "golang.design/x/mainthread"
 
-import "runtime"
+import (
+	"runtime"
+	"sync"
+)
 
 var funcQ = make(chan func(), runtime.GOMAXPROCS(0))
 
@@ -17,7 +20,9 @@ func init() {
 //
 // Init must be called in the main package.
 func Init(main func()) {
-	done := make(chan struct{})
+	done := donePool.Get().(chan struct{})
+	defer donePool.Put(done)
+
 	go func() {
 		defer func() {
 			done <- struct{}{}
@@ -37,7 +42,9 @@ func Init(main func()) {
 
 // Call calls f on the main thread and blocks until f finishes.
 func Call(f func()) {
-	done := make(chan struct{})
+	done := donePool.Get().(chan struct{})
+	defer donePool.Put(done)
+
 	funcQ <- func() {
 		defer func() {
 			done <- struct{}{}
@@ -45,4 +52,8 @@ func Call(f func()) {
 		f()
 	}
 	<-done
+}
+
+var donePool = sync.Pool{
+	New: func() interface{} { return make(chan struct{}) },
 }
