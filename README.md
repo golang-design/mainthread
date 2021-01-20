@@ -5,7 +5,7 @@
 
 Package mainthread schedules function calls on the main thread in Go.
 
-```
+```go
 import "golang.design/x/mainthread"
 ```
 

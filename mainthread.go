@@ -6,35 +6,28 @@ package mainthread // import "golang.design/x/mainthread"
 
 import "runtime"
 
-// FIXME: can we do scheduling with zero overhead?
-var fqueue chan func()
+var funcQ = make(chan func(), runtime.GOMAXPROCS(0))
 
 func init() {
 	runtime.LockOSThread()
-
-	// FIXME: what else can we do about queue size?
-	fqueue = make(chan func(), runtime.GOMAXPROCS(0))
 }
 
 // Init initializes the functionality for running arbitrary subsequent
 // functions on a main system thread.
 //
 // Init must be called in the main package.
-func Init(run func()) {
+func Init(main func()) {
 	done := make(chan struct{})
 	go func() {
 		defer func() {
-			// FIXME: do something about panicked f.
-			recover()
-
 			done <- struct{}{}
 		}()
-		run()
+		main()
 	}()
 
 	for {
 		select {
-		case f := <-fqueue:
+		case f := <-funcQ:
 			f()
 		case <-done:
 			return
@@ -45,11 +38,8 @@ func Init(run func()) {
 // Call calls f on the main thread and blocks until f finishes.
 func Call(f func()) {
 	done := make(chan struct{})
-	fqueue <- func() {
+	funcQ <- func() {
 		defer func() {
-			// FIXME: do something about panicked f.
-			recover()
-
 			done <- struct{}{}
 		}()
 		f()
