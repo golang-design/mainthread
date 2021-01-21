@@ -3,7 +3,7 @@
 [![PkgGoDev](https://pkg.go.dev/badge/golang.design/x/mainthread)](https://pkg.go.dev/golang.design/x/mainthread) [![Go Report Card](https://goreportcard.com/badge/golang.design/x/mainthread)](https://goreportcard.com/report/golang.design/x/mainthread)
 ![mainthread](https://github.com/golang-design/mainthread/workflows/mainthread/badge.svg?branch=main)
 
-Package mainthread schedules function calls on the main thread in Go.
+Package mainthread schedules function to run on the main thread with zero allocation.
 
 ```go
 import "golang.design/x/mainthread"
@@ -17,19 +17,15 @@ package main
 import "golang.design/x/mainthread"
 
 func main() {
-    mainthread.Init(func() {
-        mainthread.Call(func() {
-            // ... runs on the main thread ...
-        })
+    mainthread.Init(fn)
+}
 
-        go func() {
-            // ... runs concurrently ...
-        }()
-
-        mainthread.Call(func() {
-            // ... runs on the main thread ...
-        })
+func fn() {
+    mainthread.Call(func() {
+        // ... runs on the main thread ...
     })
+
+    // ... do what ever you want to do ...
 }
 ```
 
