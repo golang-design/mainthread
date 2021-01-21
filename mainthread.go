@@ -9,10 +9,15 @@ import (
 	"sync"
 )
 
-var funcQ = make(chan func(), runtime.GOMAXPROCS(0))
+var funcQ = make(chan funcData, runtime.GOMAXPROCS(0))
 
 func init() {
 	runtime.LockOSThread()
+}
+
+type funcData struct {
+	fn   func()
+	done chan struct{}
 }
 
 // Init initializes the functionality for running arbitrary subsequent
@@ -33,7 +38,12 @@ func Init(main func()) {
 	for {
 		select {
 		case f := <-funcQ:
-			f()
+			func() {
+				defer func() {
+					f.done <- struct{}{}
+				}()
+				f.fn()
+			}()
 		case <-done:
 			return
 		}
@@ -45,12 +55,7 @@ func Call(f func()) {
 	done := donePool.Get().(chan struct{})
 	defer donePool.Put(done)
 
-	funcQ <- func() {
-		defer func() {
-			done <- struct{}{}
-		}()
-		f()
-	}
+	funcQ <- funcData{fn: f, done: done}
 	<-done
 }
 
