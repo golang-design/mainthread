@@ -1,9 +1,37 @@
-// Copyright 2021 The golang.design Initiative Authors.
+// Copyright 2020-2021 The golang.design Initiative Authors.
 // All rights reserved. Use of this source code is governed
 // by a MIT license that can be found in the LICENSE file.
 //
 // Written by Changkun Ou <changkun.de>
 
+// Package mainthread offers facilities to schedule functions on the
+// maint hread. To use this package properly, one must call
+// mainthread.Init from the main package. For example:
+//
+// 	package main
+//
+// 	import "golang.design/x/mainthread"
+//
+// 	func main() { mainthread.Init(fn) }
+//
+// 	// fn is the actual main function
+// 	func fn() {
+// 		// mainthread.Call returns when f1 returns. Note that if f1
+// 		// blocks it will also block the execution of any subsequent
+// 		// calls on the main thread.
+// 		mainthread.Call(f1)
+//
+// 		// ... do whatever you want to do ...
+//
+// 		// mainthread.Go returns immediately and f2 is scheduled to be
+// 		// executed in the future.
+// 		mainthread.Go(f2)
+//
+// 		// ... do whatever you want to do ...
+// 	}
+//
+// 	func f1() { ... }
+// 	func f2() { ... }
 package mainthread // import "golang.design/x/mainthread"
 
 import (

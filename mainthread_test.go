@@ -1,4 +1,4 @@
-// Copyright 2021 The golang.design Initiative Authors.
+// Copyright 2020-2021 The golang.design Initiative Authors.
 // All rights reserved. Use of this source code is governed
 // by a MIT license that can be found in the LICENSE file.
 //
@@ -11,7 +11,6 @@ package mainthread_test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -85,31 +84,11 @@ func TestGo(t *testing.T) {
 		t.Fatalf("mainthread.Go is not executing in parallel")
 	}
 
-	ctxx, cancell := context.WithTimeout(context.Background(), time.Second)
+	ctxx, cancell := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancell()
 	select {
 	case <-ctxx.Done():
 		t.Fatalf("mainthread.Go never schedules the function")
 	case <-done:
 	}
-}
-
-func BenchmarkCall(b *testing.B) {
-	f := func() {}
-	mainthread.Init(func() {
-		b.ReportAllocs()
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			mainthread.Call(f)
-		}
-	})
-}
-
-func ExampleInit() {
-	mainthread.Init(func() {
-		mainthread.Call(func() {
-			fmt.Println("from main thread")
-		})
-	})
-	// Output: from main thread
 }
