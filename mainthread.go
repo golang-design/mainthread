@@ -1,6 +1,8 @@
-// Copyright 2020 The golang.design Initiative Authors.
+// Copyright 2021 The golang.design Initiative Authors.
 // All rights reserved. Use of this source code is governed
-// by a GNU GPLv3 license that can be found in the LICENSE file.
+// by a MIT license that can be found in the LICENSE file.
+//
+// Written by Changkun Ou <changkun.de>
 
 package mainthread // import "golang.design/x/mainthread"
 
@@ -9,21 +11,14 @@ import (
 	"sync"
 )
 
-var funcQ = make(chan funcData, runtime.GOMAXPROCS(0))
-
 func init() {
 	runtime.LockOSThread()
 }
 
-type funcData struct {
-	fn   func()
-	done chan struct{}
-}
-
-// Init initializes the functionality for running arbitrary subsequent
-// functions on a main system thread.
+// Init initializes the functionality of running arbitrary subsequent
+// functions be called on the main system thread.
 //
-// Init must be called in the main package.
+// Init must be called in the main.main function.
 func Init(main func()) {
 	done := donePool.Get().(chan struct{})
 	defer donePool.Put(done)
@@ -38,12 +33,14 @@ func Init(main func()) {
 	for {
 		select {
 		case f := <-funcQ:
-			func() {
-				defer func() {
-					f.done <- struct{}{}
-				}()
+			if f.fn != nil {
 				f.fn()
-			}()
+				if f.done != nil {
+					f.done <- struct{}{}
+				}
+			} else if f.fnv != nil {
+				f.ret <- f.fnv()
+			}
 		case <-done:
 			return
 		}
@@ -59,6 +56,24 @@ func Call(f func()) {
 	<-done
 }
 
-var donePool = sync.Pool{
-	New: func() interface{} { return make(chan struct{}) },
+// Go schedules f to be called on the main thread.
+func Go(f func()) {
+	funcQ <- funcData{fn: f}
+}
+
+var (
+	funcQ    = make(chan funcData, runtime.GOMAXPROCS(0))
+	donePool = sync.Pool{New: func() interface{} {
+		return make(chan struct{})
+	}}
+	retPool = sync.Pool{New: func() interface{} {
+		return make(chan interface{})
+	}}
+)
+
+type funcData struct {
+	fn   func()
+	done chan struct{}
+	fnv  func() interface{}
+	ret  chan interface{}
 }
