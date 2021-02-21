@@ -4,9 +4,9 @@
 //
 // Written by Changkun Ou <changkun.de>
 
-// Package mainthread offers facilities to schedule functions on the
-// main thread. To use this package properly, one must call
-// mainthread.Init from the main package. For example:
+// Package mainthread offers facilities to schedule functions
+// on the main thread. To use this package properly, one must
+// call mainthread.Init from the main package. For example:
 //
 // 	package main
 //
@@ -61,13 +61,9 @@ func Init(main func()) {
 	for {
 		select {
 		case f := <-funcQ:
-			if f.fn != nil {
-				f.fn()
-				if f.done != nil {
-					f.done <- struct{}{}
-				}
-			} else if f.fnv != nil {
-				f.ret <- f.fnv()
+			f.fn()
+			if f.done != nil {
+				f.done <- struct{}{}
 			}
 		case <-done:
 			return
@@ -94,14 +90,9 @@ var (
 	donePool = sync.Pool{New: func() interface{} {
 		return make(chan struct{})
 	}}
-	retPool = sync.Pool{New: func() interface{} {
-		return make(chan interface{})
-	}}
 )
 
 type funcData struct {
 	fn   func()
 	done chan struct{}
-	fnv  func() interface{}
-	ret  chan interface{}
 }

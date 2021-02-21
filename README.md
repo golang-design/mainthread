@@ -13,9 +13,9 @@ import "golang.design/x/mainthread"
 
 ## API Usage
 
-Package mainthread offers facilities to schedule functions on the
-main thread. To use this package properly, one must call
-mainthread.Init from the main package. For example:
+Package mainthread offers facilities to schedule functions
+on the main thread. To use this package properly, one must
+call mainthread.Init from the main package. For example:
 
 ```go
 package main
