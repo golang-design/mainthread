@@ -6,7 +6,7 @@
 
 // Package mainthread offers facilities to schedule functions
 // on the main thread. To use this package properly, one must
-// call mainthread.Init from the main package. For example:
+// call `mainthread.Init` from the main package. For example:
 //
 // 	package main
 //
@@ -16,6 +16,8 @@
 //
 // 	// fn is the actual main function
 // 	func fn() {
+// 		// ... do whatever you want to do ...
+//
 // 		// mainthread.Call returns when f1 returns. Note that if f1
 // 		// blocks it will also block the execution of any subsequent
 // 		// calls on the main thread.
