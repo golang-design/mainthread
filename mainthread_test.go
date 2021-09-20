@@ -92,3 +92,28 @@ func TestGo(t *testing.T) {
 	case <-done:
 	}
 }
+
+func TestPanickedFuncCall(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+		t.Fatalf("expected to panic, but actually not")
+	}()
+
+	mainthread.Call(func() {
+		panic("die")
+	})
+}
+
+func TestPanickedFuncGo(t *testing.T) {
+	defer func() {
+		if err := mainthread.Error(); err != nil {
+			return
+		}
+		t.Fatalf("expected to panic, but actually not")
+	}()
+
+	mainthread.Go(func() { panic("die") })
+	mainthread.Call(func() {}) // for sync
+}
