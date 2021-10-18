@@ -73,10 +73,8 @@ package mainthread // import "golang.design/x/mainthread"
 
 import (
 	"fmt"
-	"math/rand"
 	"runtime"
 	"sync"
-	"time"
 )
 
 func init() {
@@ -119,7 +117,6 @@ func Init(main func()) {
 						}
 					}
 				}()
-				time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
 				f.fn()
 			}()
 		case <-done:
