@@ -22,3 +22,14 @@ func BenchmarkCall(b *testing.B) {
 		}
 	})
 }
+func BenchmarkGo(b *testing.B) {
+	done := make(chan bool)
+	mainthread.Init(func() {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			mainthread.Go(func() { done <- true })
+			<-done
+		}
+	})
+}
