@@ -30,11 +30,15 @@
 //		// executed in the future.
 //		mainthread.Go(f2)
 //
+//		// mainthread.CallV is the value-returning counterpart of Call.
+//		v := mainthread.CallV(f3)
+//
 //		// ... do stuff ...
 //	}
 //
 //	func f1() { ... }
 //	func f2() { ... }
+//	func f3() int { ... }
 //
 // If the given function triggers a panic, and called via `mainthread.Call`,
 // then the original panic value is propagated to the calling goroutine,

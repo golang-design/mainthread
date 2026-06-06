@@ -38,3 +38,13 @@ func ExampleGo() {
 	})
 	// Output: from main thread
 }
+
+func ExampleCallV() {
+	mainthread.Init(func() {
+		n := mainthread.CallV(func() int {
+			return 42
+		})
+		fmt.Println(n)
+	})
+	// Output: 42
+}

@@ -10,6 +10,8 @@ import "golang.design/x/mainthread"
 
 - Main thread scheduling
 - Schedule functions without memory allocation
+- Value-returning calls via `CallV`
+- Panic propagation and capture
 
 ## API Usage
 
