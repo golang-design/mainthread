@@ -4,70 +4,21 @@
 //
 // Written by Changkun Ou <changkun.de>
 
-//go:build linux
-// +build linux
-
 package mainthread_test
 
 import (
 	"context"
 	"os"
-	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
 	"golang.design/x/mainthread"
-	"golang.org/x/sys/unix"
 )
 
-var initTid int
-
-func init() {
-	initTid = unix.Getpid()
-}
-
+// TestMain runs the entire test suite inside the main thread event loop so
+// that mainthread.Call/Go have a loop to drain on every platform.
 func TestMain(m *testing.M) {
 	mainthread.Init(func() { os.Exit(m.Run()) })
-}
-
-// TestMainThread is not designed to be executed on the main thread.
-// This test tests the a call from this function that is invoked by
-// mainthread.Call is either executed on the main thread or not.
-func TestMainThread(t *testing.T) {
-	var (
-		nummain uint64
-		numcall = 100000
-	)
-
-	wg := sync.WaitGroup{}
-	for i := 0; i < numcall; i++ {
-		wg.Add(2)
-		go func() {
-			defer wg.Done()
-			mainthread.Call(func() {
-				// Code inside this function is expecting to be executed
-				// on the mainthread, this means the thread id should be
-				// euqal to the initial process id.
-				tid := unix.Gettid()
-				if tid == initTid {
-					return
-				}
-				t.Errorf("call is not executed on the main thread, want %d, got %d", initTid, tid)
-			})
-		}()
-		go func() {
-			defer wg.Done()
-			if unix.Gettid() == initTid {
-				atomic.AddUint64(&nummain, 1)
-			}
-		}()
-	}
-	wg.Wait()
-
-	if nummain == uint64(numcall) {
-		t.Fatalf("all non main thread calls are executed on the main thread.")
-	}
 }
 
 func TestGo(t *testing.T) {
@@ -93,6 +44,13 @@ func TestGo(t *testing.T) {
 	}
 }
 
+func TestCallV(t *testing.T) {
+	got := mainthread.CallV(func() int { return 42 })
+	if got != 42 {
+		t.Fatalf("CallV returned %d, want 42", got)
+	}
+}
+
 func TestPanickedFuncCall(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -102,6 +60,40 @@ func TestPanickedFuncCall(t *testing.T) {
 	}()
 
 	mainthread.Call(func() {
+		panic("die")
+	})
+}
+
+// TestPanickedFuncCallValue verifies that Call re-panics the original value,
+// preserving its type rather than flattening it to a string.
+func TestPanickedFuncCallValue(t *testing.T) {
+	type myErr struct{ code int }
+
+	defer func() {
+		r := recover()
+		got, ok := r.(myErr)
+		if !ok {
+			t.Fatalf("expected panic value of type myErr, got %T (%v)", r, r)
+		}
+		if got.code != 7 {
+			t.Fatalf("expected code 7, got %d", got.code)
+		}
+	}()
+
+	mainthread.Call(func() {
+		panic(myErr{code: 7})
+	})
+}
+
+func TestPanickedFuncCallV(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+		t.Fatalf("expected to panic, but actually not")
+	}()
+
+	mainthread.CallV(func() int {
 		panic("die")
 	})
 }

@@ -12,13 +12,15 @@ import (
 	"golang.design/x/mainthread"
 )
 
+// BenchmarkCall relies on the main thread event loop started by TestMain,
+// so it measures a single Call round-trip to the real main OS thread rather
+// than a nested loop. The headline metric is allocations per op (zero); the
+// ns/op reflects the cost of waking the locked main thread and is inherently
+// platform-dependent and noisy.
 func BenchmarkCall(b *testing.B) {
 	f := func() {}
-	mainthread.Init(func() {
-		b.ReportAllocs()
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			mainthread.Call(f)
-		}
-	})
+	b.ReportAllocs()
+	for b.Loop() {
+		mainthread.Call(f)
+	}
 }
