@@ -73,6 +73,10 @@
 //
 // It is possible to cache up to a maximum of 42 panicked errors.
 // More errors are ignored.
+//
+// Deprecated: this package has moved to golang.design/x/runtime/mainthread.
+// Update imports to "golang.design/x/runtime/mainthread"; this repository
+// is no longer maintained and will be archived.
 package mainthread // import "golang.design/x/mainthread"
 
 import (

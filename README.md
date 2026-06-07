@@ -1,9 +1,25 @@
-# mainthread [![PkgGoDev](https://pkg.go.dev/badge/golang.design/x/mainthread)](https://pkg.go.dev/golang.design/x/mainthread) ![mainthread](https://github.com/golang-design/mainthread/workflows/mainthread/badge.svg?branch=main) ![](https://changkun.de/urlstat?mode=github&repo=golang-design/mainthread)
+# mainthread
+
+> [!WARNING]
+> **This package has moved and this repository is archived.**
+>
+> `mainthread` now lives in the
+> [`golang.design/x/runtime`](https://github.com/golang-design/runtime)
+> module as [`golang.design/x/runtime/mainthread`](https://pkg.go.dev/golang.design/x/runtime/mainthread).
+> Update your imports:
+>
+> ```diff
+> -import "golang.design/x/mainthread"
+> +import "golang.design/x/runtime/mainthread"
+> ```
+>
+> The API is unchanged. This repository is no longer maintained; all
+> future development happens in `golang.design/x/runtime`.
 
 schedule functions to run on the main thread
 
 ```go
-import "golang.design/x/mainthread"
+import "golang.design/x/runtime/mainthread"
 ```
 
 ## Features
